@@ -1,17 +1,20 @@
 from dotenv import load_dotenv
-from google.cloud import bigquery
-import os
 from dataclasses import dataclass
+import os
 
 # Configuracion de las variables de entorno
 @dataclass
 class Settings:
-    test: str
-    BQclient: bigquery
+    MYSQL_HOST: str
+    MYSQL_USER: str
+    MYSQL_PASS: str
+    MYSQL_DB: str
 
 # Cargar variables de entorno
 load_dotenv()
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'second-test-fellows-gc.json'
 
 # Guardar variables de entorno
-settings = Settings(test=os.getenv("test"), BQclient=bigquery.Client())
+settings = Settings(MYSQL_HOST = os.getenv("MYSQL_HOST"),
+                    MYSQL_USER = os.getenv("MYSQL_USER"),
+                    MYSQL_PASS = os.getenv("MYSQL_PASS"),
+                    MYSQL_DB = os.getenv("MYSQL_DB"))

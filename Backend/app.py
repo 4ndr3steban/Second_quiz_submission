@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from Routers import bigQueryConsults, usersQueries
+from Routes import bigQueryConsults, usersQueries
 
 
 app = FastAPI()
@@ -15,6 +15,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(bigQueryConsults)
+app.include_router(bigQueryConsults.router)
 
-app.include_router(usersQueries)
+app.include_router(usersQueries.router)
