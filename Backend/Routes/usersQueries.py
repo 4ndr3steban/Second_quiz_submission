@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, insert
 from sqlalchemy.orm import Session
 from Config.db import engine
+from Core.crud import insert_item, get_query, get_comments, get_posts
 from Config.models import Tpost, Tquery, Tcomment
 from Schemas.comment import Comment
 from Schemas.post import Post
@@ -12,46 +13,43 @@ router = APIRouter(prefix="/userqueries",
                     responses={status.HTTP_404_NOT_FOUND: {"response": "not found"}})
 
 
-@router.post("/savequery", status_code = status.HTTP_200_OK)
-async def savequery(query: Query):
+@router.post("/savequeryandpost", response_model=list, status_code = status.HTTP_200_OK)
+async def savequery(query: Query, post: Post):
 
-    session = Session(engine)
-    qr = select(Tpost)
-
-    return "correct"
+    post = insert_item(Session(engine), Tpost, post)
+    qry = insert_item(Session(engine), Tquery, query)
+    
+    return [post, qry]
 
 
 @router.post("/savecomment", response_model=dict, status_code = status.HTTP_200_OK)
-async def savecomment():
+async def savecomment(comment: Comment):
 
-    session = Session(engine)
-    qr = select(Tpost)
+    item = insert_item(Session(engine), Tcomment, comment)
 
-    return session.scalars(qr)
+    return item
 
 
-@router.get("/showqueries", response_model=dict, status_code = status.HTTP_200_OK)
+
+@router.get("/showposts", response_model=list, status_code = status.HTTP_200_OK)
 async def showqueries():
 
-    session = Session(engine)
-    qr = select(Tpost)
+    posts = get_posts(Session(engine))
 
-    return {"res": session.scalars(qr)}
-
-
-@router.get("/showcomments", status_code = status.HTTP_200_OK)
-async def showcomment():
-
-    session = Session(engine)
-    qr = select(Tpost)
-
-    return session.scalars(qr)
+    return posts
 
 
-@router.get("/getquerytouse", status_code = status.HTTP_200_OK)
-async def getquerytouse():
+@router.get("/showcomments/{id_post}", response_model=list, status_code = status.HTTP_200_OK)
+async def showcomment(id_post: int):
 
-    session = Session(engine)
-    qr = select(Tpost)
+    comments = get_comments(Session(engine), id_post)
 
-    return session.scalars(qr)
+    return comments
+
+
+@router.get("/getquerytouse/{id_post}", response_model=list, status_code = status.HTTP_200_OK)
+async def getquerytouse(id_post: int):
+
+    db_qery = get_query(Session(engine), 2)
+
+    return db_qery
