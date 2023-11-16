@@ -1,24 +1,60 @@
 from fastapi import APIRouter, HTTPException, status
+from typing import Union
+from datetime import datetime as dt, timedelta
 from Config.BQclient import BQclient
 from Schemas.query import Query
 
+# Instancia para manejar el endpoint para consultas a BigQuery
 router = APIRouter(prefix="/bigquery",
                     tags=["user consults"],
                     responses={status.HTTP_404_NOT_FOUND: {"response": "not found"}})
 
 
 @router.get("/consult", status_code = status.HTTP_200_OK)
-async def macrochallenges(query: Query):
-    tabla = ""
-    if query.georange == "us":
-        tabla = "`bigquery-public-data.google_trends.top_terms`"
+async def macrochallenges(date: str = str(dt.now().date()-timedelta(days=1)),
+                          georange: str = "us",
+                          country: Union[str, None] = None,
+                          numtop: int = 25,
+                          ascentop: str = "",
+                          id_post: int = 0):
+    
+    """ Consulta sql manejada con filtros a BigQuery
 
-    test_query =f"""
+    input: datos sobre los filtros de la consulta
+            - date: fecha de la cual se quiere ver el top
+            - georange: top internacional o de estados unidos
+            - country: si el top es internacional, especificar el pais
+            - numtop: rango del top (ej: top 5, top 10, ...)
+            - ascentop: ver top establecido o ver trends en ascenso
+            - id_post: se establece automaticamente (se usa solo en caso de guardar la query)
 
-    SELECT term, rank FROM {tabla}`bigquery-public-data.google_trends.top_terms` 
-    Where refresh_date = DATE_SUB(CURRENT_DATE(), INTERVAL 2 DAY) and country_name = "Belgium" order by rank;
+    output: nombre del trend y posición en el ranking
+    
+    """
+    # Instancia de la query para manejar los datos como un Schema
+    query = Query(date=date, georange=georange, country=country, numtop=numtop, ascentop=ascentop, id_pos=id_post)
+
+
+    # Query con los filtros aplicados para top de us
+    query_top =f"""
+
+    SELECT term, rank FROM `bigquery-public-data.google_trends.top_{query.ascentop}terms` 
+    Where refresh_date = "{query.date}" group by term, rank order by rank limit {query.numtop};
 
     """
-    res = BQclient.query(test_query)
+
+    # Query con los filtros aplicados para top internacional
+    query_intr_top =f"""
+
+    SELECT term, rank FROM `bigquery-public-data.google_trends.international_top_{query.ascentop}terms` 
+    Where refresh_date = "{query.date}" and country_name = "{query.country}" group by term, rank order by rank limit {query.numtop};
+
+    """
+
+    # Usar una de las queries anteriores según sea el caso (us o internacional)
+    if query.georange == "us":
+        res = BQclient.query(query_top)
+    elif query.georange == "intr":
+        res = BQclient.query(query_intr_top)
 
     return res
