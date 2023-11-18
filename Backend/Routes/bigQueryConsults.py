@@ -31,9 +31,11 @@ async def macrochallenges(date: str = str(dt.now().date()-timedelta(days=1)),
     output: nombre del trend y posición en el ranking
     
     """
-    # Instancia de la query para manejar los datos como un Schema
-    query = Query(date=date, georange=georange, country=country, numtop=numtop, ascentop=ascentop, id_pos=id_post)
-
+    try:
+        # Instancia de la query para manejar los datos como un Schema
+        query = Query(date=date, georange=georange, country=country, numtop=numtop, ascentop=ascentop, id_pos=id_post)
+    except:
+        raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Incorrect query format")
 
     # Query con los filtros aplicados para top de us
     query_top =f"""
@@ -52,9 +54,12 @@ async def macrochallenges(date: str = str(dt.now().date()-timedelta(days=1)),
     """
 
     # Usar una de las queries anteriores según sea el caso (us o internacional)
-    if query.georange == "us":
-        res = BQclient.query(query_top)
-    elif query.georange == "intr":
-        res = BQclient.query(query_intr_top)
+    try:
+        if query.georange == "us":
+            res = BQclient.query(query_top)
+        elif query.georange == "intr":
+            res = BQclient.query(query_intr_top)
 
-    return res
+        return res
+    except:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="fail request to BigQuery (try to change inputs)")        
