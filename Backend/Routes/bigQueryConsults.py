@@ -60,6 +60,6 @@ async def macrochallenges(date: str = str(dt.now().date()-timedelta(days=1)),
         elif query.georange == "intr":
             res = BQclient.query(query_intr_top)
 
-        return res
+        return [res]
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="fail request to BigQuery (try to change inputs)")        
