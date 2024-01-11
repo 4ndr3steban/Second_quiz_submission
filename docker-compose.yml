@@ -1,0 +1,64 @@
+version: '3.10'
+
+services:
+  database:
+    image: mysql:latest
+    container_name: mydatabase
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASS}
+      MYSQL_DATABASE: ${MYSQL_DB}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - myapp
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - 8085:80
+    environment:
+      - PMA_HOST=${MYSQL_HOST}
+    depends_on:
+      - database
+    networks:
+      - myapp
+
+  backend:
+    build: 
+      context: ./Backend
+      dockerfile: dockerfile.back
+    image: backendimg
+    container_name: mybackend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+    environment:
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASS=${MYSQL_PASS}
+      - MYSQL_DB=${MYSQL_DB}
+      - MYSQL_PORT=${MYSQL_PORT}
+    networks:
+      - myapp
+    volumes:
+      - ./Backend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: dockerfile.front
+    image: frontendimg
+    container_name: myfrontend
+    ports:
+      - "8080:8080"
+    networks:
+      - myapp
+
+volumes:
+  mysql-data:
+
+networks:
+  myapp:

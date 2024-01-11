@@ -145,7 +145,7 @@ export const Home = () => {
 
                 <button type="submit" className="btn btn-primary" onClick={() => {// Realiza la solicitud fetch a la API
                                                                                     try {
-                                                                                      fetch(`http://127.0.0.1:8000/bigquery/consult?date=${date}&georange=${georange}&country=${country}&numtop=${numtop}&ascentop=${ascentop}&id_post=0`)
+                                                                                      fetch(`http://localhost:8000/bigquery/consult?date=${date}&georange=${georange}&country=${country}&numtop=${numtop}&ascentop=${ascentop}&id_post=0`)
                                                                                       .then((response) => response.json())
                                                                                       .then((data) => setData(data[0]));
                                                                                     
