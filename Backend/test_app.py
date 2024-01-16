@@ -45,7 +45,7 @@ def test_show_comments():
 
 # Test para validar el endpoint para mostrar una query para volver a usar
 def test_show_querytouse():
-    response = client.get("/userqueries/getquerytouse/12")
+    response = client.get("/userqueries/getquerytouse/1")
 
     assert response.status_code == 200
 
